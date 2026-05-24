@@ -1,7 +1,7 @@
 Что нужно для локальной версии "DigiMath":
 
 1)Xampp - Php версия  8.2.12
-2)MongoDB ,  https://www.mongodb.com/try/download/community. (8.3.2) не Атлас.
+2)MongoDB , https://fastdl.mongodb.org/windows/mongodb-windows-x86_64-7.0.15.zip.
 3)MongoDB PHP Extension, https://pecl.php.net/package/mongodb/2.3.3/windows, выбирай PHP 8.2 --NTS 64x
 
 3.1)Инструнция к Плангину
@@ -13,4 +13,4 @@
 В процессе разработки всегда нужно включать/выключать :
 
 1)XAMPP Control Panel (Apache, MySQL)
-2)Command Prompt as Administrator -----> net start MongoDB  (чтобы выключить net stop MongoDB)
+2)Command Prompt as Administrator ----->C:\mongodb\bin\mongod.exe --dbpath C:\data\db  (Не закрывать пока работаешь)
