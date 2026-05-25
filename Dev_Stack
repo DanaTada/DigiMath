@@ -2,13 +2,15 @@
 
 1)Xampp - Php версия  8.2.12
 2)MongoDB , https://www.mongodb.com/try/download/community,  выбирай 6.0.28 из спискаю
-3)MongoDB PHP Extension, https://pecl.php.net/package/mongodb/2.3.3/windows, выбирай PHP 8.2 --NTS 64x
+3)MongoDB PHP Extension, https://pecl.php.net/package/mongodb/2.3.3/windows, выбирай PHP 8.2 --THREAD SAFE 64x
 
 3.1)Инструнция к Плангину
 3.2). Extract	Get php_mongodb.dll from the zip
 3.3). Copy	Paste into: C:\xampp\php\ext\
 3.4). Edit php.ini	Open C:\xampp\php\php.ini and add: extension=php_mongodb.dll
 3.5). Restart Apache in XAMPP Control Panel
+
+4)Скачай MongoDB Shell.
 
 В процессе разработки всегда нужно включать/выключать :
 
