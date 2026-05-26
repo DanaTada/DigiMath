@@ -15,4 +15,4 @@
 В процессе разработки всегда нужно включать/выключать :
 
 1)XAMPP Control Panel (Apache, MySQL)
-2)Command Prompt as Administrator ----->C:\mongodb\bin\mongod.exe --dbpath C:\твой узер\db  (Не закрывать пока работаешь)
+2)Command Prompt as Administrator ----->C:\mongodb\bin\mongod.exe --dbpath C:\твой юзер\db  (Не закрывать пока работаешь)
