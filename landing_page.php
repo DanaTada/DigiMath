@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html>
     <head>
         <meta charset="UTF-8">
@@ -7,6 +8,9 @@
     <body>
         <main>
              <h1>"DigiMath" sākumlapa !</h1>
+             <button type="button">Pieslēgties</button>
+             <button type="button">Izveidot kontu</button>
+             
         </main>
     </body>
 </html>
