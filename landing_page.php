@@ -7,9 +7,9 @@
     </head>
     <body>
         <main>
-             <h1>"DigiMath" sākumlapa !</h1>
-             <button type="button">Pieslēgties</button>
-             <button type="button">Izveidot kontu</button>
+            <h1>"DigiMath" sākumlapa !</h1>
+            <button onclick = "window.location.href='login.php';">Pieslēgties</button>
+            <button onclick = "window.location.href='register.php';">Izveidot kontu</button>
              
         </main>
     </body>

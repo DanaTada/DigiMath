@@ -10,15 +10,13 @@
 
     <form action="login.php" method="post">
 
-        <label for="lietotajvards">Lietotājvārds:</label>
-        <input type="text" id="lietotajvards" name="lietotajvards"
-               maxlength="30" pattern="[A-Za-z0-9_]{1,30}" required>
+        <label for="username">Lietotājvārds:</label>
+        <input type="text" name="username" maxlength="30" pattern="[A-Za-z0-9_]{1,30}" required>
 
-        <label for="parole">Parole:</label>
-        <input type="password" id="parole" name="parole"
-               maxlength="30" required>
+        <label for="password">Parole:</label>
+        <input type="password"  name="password" maxlength="30" required>
 
-        <button type="submit">Ielogoties</button>
+        <input type="submit" value="Ielogoties">
 
     </form>
 
