@@ -6,12 +6,12 @@
 </head>
 <body>
 
-    <h1>Mans profils</h1>
+    <h1>Sākums</h1>
     <p>Lietotājvārds: </p>
 
-    <button type="button">Mans profils</button>
+    <button type="button" onclick="location.href='profile.php'">Mans profils</button>
     <button type="button">Mans progress</button>
-    <button type="button">Iziet</button>
+    <button type="button" onclick="iziet()">Iziet</button>
 
     <h2>Izvēlies klasi</h2>
     <div>
@@ -25,6 +25,16 @@
         <button type="button">8</button>
         <button type="button">9</button>
     </div>
+
+    <script>
+        function iziet() {
+            var atbilde = confirm('Vai tiešām vēlaties iziet?');
+            if (atbilde === true) {
+                location.href = 'login.php';
+            }
+            
+        }
+    </script>
 
 </body>
 </html>
