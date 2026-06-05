@@ -9,7 +9,7 @@
     <h1>Mans profils</h1>
     <p>Lietotājvārds: </p>
 
-    <button type="button">Mans profils</button>
+    <button type="button" onclick="location.href='profile.php'">Mans profils</button>
     <button type="button">Mans progress</button>
     <button type="button">Iziet</button>
 
