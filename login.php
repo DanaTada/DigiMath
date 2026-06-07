@@ -1,3 +1,5 @@
+<?php include "connect_to_db.php";
+?>
 <!DOCTYPE html>
 <html lang="lv">
 <head>
@@ -8,7 +10,7 @@
 
     <h1>Pieslēgties</h1>
 
-    <form action="login.php" method="post">
+    <form action="?" method="post" >
 
         <label for="username">Lietotājvārds:</label>
         <input type="text" name="username" maxlength="30" pattern="[A-Za-z0-9_]{1,30}" required>
