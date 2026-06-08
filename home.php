@@ -1,3 +1,12 @@
+<?php
+session_start(); 
+
+
+if (!isset($_SESSION['username'])) {
+    header("Location: login.php");
+    exit();
+}
+?>
 <!DOCTYPE html>
 <html lang="lv">
 <head>
@@ -7,7 +16,7 @@
 <body>
 
     <h1>Sākums</h1>
-    <p>Lietotājvārds: </p>
+    <p>Lietotājvārds:  <?=$_SESSION['username']?> </p>
 
     <button type="button" onclick="location.href='profile.php'">Mans profils</button>
     <button type="button">Mans progress</button>
@@ -31,6 +40,7 @@
             var atbilde = confirm('Vai tiešām vēlaties iziet?');
             if (atbilde === true) {
                 location.href = 'login.php';
+                session_destroy();
             }
             
         }
