@@ -1,4 +1,22 @@
 <?php include "connect_to_db.php";
+
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+
+    $username_input = $_POST['username'];
+    $password_input = $_POST['password'];
+
+    $check_stmt = $conn->prepare("SELECT user_ID FROM users WHERE username = ? AND password = ?");
+    $check_stmt->execute([$username_input, $password_input]);
+    $check_result = $check_stmt->get_result();
+
+    if ($check_result->num_rows > 0){
+        header("Location: home.php");
+        exit();
+    } else {
+        echo "WRONG INFO";
+    }
+}
+
 ?>
 <!DOCTYPE html>
 <html lang="lv">
