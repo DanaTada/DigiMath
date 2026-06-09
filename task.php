@@ -1,24 +1,64 @@
 <?php
-$id = isset($_GET['id']) ? $_GET['id'] : '';
+session_start();
+require 'ai_helper.php';
 
-// Uzdevumi: jautājums + pareizā atbilde
-$uzdevumi = [
-    '1' => ['jautajums' => '1+3=?', 'atbilde' => '4'],
-    '2' => ['jautajums' => '3-1=?', 'atbilde' => '2'],
-];
+// Ja nāk no taskdesk.php (?id=1 vai ?id=2) - uzstāda tēmu un ģenerē jaunu uzdevumu
+if (isset($_GET['id'])) {
+    $_SESSION['tema'] = ($_GET['id'] === '2') ? 'minus' : 'plus';
+    unset($_SESSION['uzdevums']);
+}
 
-$uzdevums = isset($uzdevumi[$id]) ? $uzdevumi[$id]['jautajums'] : '';
-$pareiza  = isset($uzdevumi[$id]) ? $uzdevumi[$id]['atbilde']   : '';
+if (!isset($_SESSION['tema'])) {
+    $_SESSION['tema'] = 'plus';
+}
 
-$rezultats = '';
+$paskaidrojums = '';   // AI paskaidrojums
+$rezultats     = '';   // "Pareizi!" / "Nepareizi."
+$ievaditā      = '';   // ko rādīt atbildes laukā
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $atbilde = isset($_POST['atbilde']) ? trim($_POST['atbilde']) : '';
-    if ($atbilde === $pareiza) {
-        $rezultats = 'Pareizi!';
-    } else {
-        $rezultats = 'Nepareizi. Mēģini vēlreiz!';
+    $darbiba = isset($_POST['darbiba']) ? $_POST['darbiba'] : '';
+    $skolena = isset($_POST['atbilde']) ? trim($_POST['atbilde']) : '';
+
+    if ($darbiba === 'atbildet') {
+        // Pārbauda atbildi - atbilde PALIEK laukā
+        $ievaditā = $skolena;
+        if ($skolena === '') {
+            $rezultats = 'Lūdzu, ievadi atbildi.';
+        } elseif ($skolena === trim($_SESSION['pareiza'])) {
+            $rezultats = 'Pareizi!';
+        } else {
+            $rezultats = 'Nepareizi.';
+        }
+    } elseif ($darbiba === 'paskaidrot') {
+        // AI paskaidrojums - lauks tiek notīrīts
+        $paskaidrojums = paskaidro_atbildi(
+            $_SESSION['uzdevums'],
+            $_SESSION['pareiza'],
+            $skolena
+        );
+    } elseif ($darbiba === 'jauns') {
+        // Jauns uzdevums tajā pašā tēmā - lauks tiek notīrīts
+        $jauns = genere_uzdevums($_SESSION['tema']);
+        $_SESSION['uzdevums'] = $jauns['uzdevums'];
+        $_SESSION['pareiza']  = $jauns['atbilde'];
+    } elseif ($darbiba === 'jauna_tema') {
+        // Cita tēma (plus <-> minus) - lauks tiek notīrīts
+        $_SESSION['tema'] = ($_SESSION['tema'] === 'plus') ? 'minus' : 'plus';
+        $jauns = genere_uzdevums($_SESSION['tema']);
+        $_SESSION['uzdevums'] = $jauns['uzdevums'];
+        $_SESSION['pareiza']  = $jauns['atbilde'];
     }
 }
+
+// Pirmajā reizē (vēl nav uzdevuma) - uzģenerē
+if (!isset($_SESSION['uzdevums'])) {
+    $jauns = genere_uzdevums($_SESSION['tema']);
+    $_SESSION['uzdevums'] = $jauns['uzdevums'];
+    $_SESSION['pareiza']  = $jauns['atbilde'];
+}
+
+$uzdevums = $_SESSION['uzdevums'];
 ?>
 <!DOCTYPE html>
 <html lang="lv">
@@ -28,16 +68,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </head>
 <body>
 
-    <h1><?= $uzdevums ?></h1>
+    <h1><?= htmlspecialchars($uzdevums) ?></h1>
 
-    <form action="task.php?id=<?= htmlspecialchars($id) ?>" method="post">
-        <input type="text" name="atbilde" required>
-        <button type="submit">Pārbaudīt</button>
+    <form method="post">
+        <input type="text" name="atbilde" value="<?= htmlspecialchars($ievaditā) ?>">
+        <button type="submit" name="darbiba" value="atbildet">Atbildēt</button>
+        <br><br>
+        <button type="submit" name="darbiba" value="jauns">Jauns uzdevums</button>
+        <button type="submit" name="darbiba" value="paskaidrot">Paskaidrojums</button>
+        <button type="submit" name="darbiba" value="jauna_tema">Jauna tēma</button>
     </form>
 
-    <p><?= $rezultats ?></p>
+    <p><?= htmlspecialchars($rezultats) ?></p>
+    <p><?= nl2br(htmlspecialchars($paskaidrojums)) ?></p>
 
-    <a href="taskdesk.php">Atpakaļ uz uzdevumiem</a>
+    <a href="taskdesk.php">Atpakaļ</a>
 
 </body>
 </html>
