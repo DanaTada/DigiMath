@@ -1,0 +1,112 @@
+{
+  "tasks": [
+    {
+      "id": 1,
+      "grade": 1,
+      "text": "3 + 2 =",
+      "atbilde": "5"
+    },
+    {
+      "id": 2,
+      "grade": 1,
+      "text": "7 - 3 =",
+      "atbilde": "4"
+    },
+    {
+      "id": 3,
+      "grade": 2,
+      "text": "25 + 14 =",
+      "atbilde": "39"
+    },
+    {
+      "id": 4,
+      "grade": 2,
+      "text": "38 - 12 =",
+      "atbilde": "26"
+    },
+    {
+      "id": 5,
+      "grade": 3,
+      "text": "47 + 28 =",
+      "atbilde": "75"
+    },
+    {
+      "id": 6,
+      "grade": 3,
+      "text": "4 × 3 =",
+      "atbilde": "12"
+    },
+    {
+      "id": 7,
+      "grade": 4,
+      "text": "7 × 8 =",
+      "atbilde": "56"
+    },
+    {
+      "id": 8,
+      "grade": 4,
+      "text": "64 ÷ 8 =",
+      "atbilde": "8"
+    },
+    {
+      "id": 9,
+      "grade": 5,
+      "text": "1/2 + 1/4 =",
+      "atbilde": "3/4"
+    },
+    {
+      "id": 10,
+      "grade": 5,
+      "text": "0.5 × 0.2 =",
+      "atbilde": "0.1"
+    },
+    {
+      "id": 11,
+      "grade": 6,
+      "text": "20% no 50 =",
+      "atbilde": "10"
+    },
+    {
+      "id": 12,
+      "grade": 6,
+      "text": "5 - (-3) =",
+      "atbilde": "8"
+    },
+    {
+      "id": 13,
+      "grade": 7,
+      "text": "2x + 5 = 15 (x = ?)",
+      "atbilde": "5"
+    },
+    {
+      "id": 14,
+      "grade": 7,
+      "text": "-3 + 7 =",
+      "atbilde": "4"
+    },
+    {
+      "id": 15,
+      "grade": 8,
+      "text": "3² + 4² = ?",
+      "atbilde": "25"
+    },
+    {
+      "id": 16,
+      "grade": 8,
+      "text": "x + y = 10; x - y = 4 (x = ?)",
+      "atbilde": "7"
+    },
+    {
+      "id": 17,
+      "grade": 9,
+      "text": "x² - 5x + 6 = 0 (x = ?)",
+      "atbilde": "2,3"
+    },
+    {
+      "id": 18,
+      "grade": 9,
+      "text": "sin 30° = ?",
+      "atbilde": "0.5"
+    }
+  ]
+}

@@ -1,3 +1,6 @@
+<?php
+session_start();
+?>
 <!DOCTYPE html>
 <html lang="lv">
 <head>
@@ -7,7 +10,7 @@
 <body>
 
     <h1>Sākums</h1>
-    <p>Lietotājvārds: </p>
+    <p>Lietotājvārds: <?=$_SESSION['username']?></p>
 
     <button type="button" onclick="location.href='profile.php'">Mans profils</button>
     <button type="button">Mans progress</button>
