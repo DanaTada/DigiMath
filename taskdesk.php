@@ -1,50 +1,48 @@
-<?php
-session_start();
-
-// Set default grade if not set
-if (!isset($_SESSION['klase'])) {
-    $_SESSION['klase'] = 1;
-}
-
-// Load tasks from JSON
-$json_file = __DIR__ . '/uzdevumi.json';
-$tasks = [];
-
-if (file_exists($json_file)) {
-    $content = file_get_contents($json_file);
-    $data = json_decode($content, true);
-    $all_tasks = $data['tasks'] ?? [];
-    
-    // Filter tasks by current grade
-    foreach ($all_tasks as $task) {
-        if ($task['grade'] == $_SESSION['klase']) {
-            $tasks[] = $task;
-        }
-    }
-}
-?>
 <!DOCTYPE html>
 <html lang="lv">
 <head>
     <meta charset="UTF-8">
-    <title>Uzdevumi - <?= $_SESSION['klase'] ?>. klase</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Uzdevumi — DigiMath</title>
+    <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body class="app-page">
 
-    <h1><?= $_SESSION['klase'] ?>. klases uzdevumi</h1>
+    <header class="site-header">
+        <a href="home.php" class="site-logo">Digi<span>Math</span></a>
+        <nav>
+            <a href="profile.php">Profils</a>
+        </nav>
+    </header>
 
-    <?php if (empty($tasks)): ?>
-        <p>Nav uzdevumu šai klasei.</p>
-    <?php else: ?>
-        <?php foreach ($tasks as $task): ?>
-            <p>
-                <a href="task.php?id=<?= $task['id'] ?>">
-                    Uzdevums <?= $task['id'] ?>
-                </a>
-            </p>
-        <?php endforeach; ?>
-    <?php endif; ?>
+    <main class="app-main">
 
-    <a href="home.php">Home</a>
+        <a href="home.php" class="back-link">← Atpakaļ uz sākumu</a>
+
+        <div class="page-heading">
+            <h1>Uzdevumi</h1>
+            <p>Izvēlies tēmu un sāc risināt!</p>
+        </div>
+
+        <div class="task-grid">
+
+            <div class="task-card">
+                <div class="task-card-badge">➕ Saskaitīšana</div>
+                <h2>Saskaitīšana</h2>
+                <p>Trenē saskaitīšanas prasmes ar dažāda grūtuma piemēriem un MI palīdzību.</p>
+                <a href="task.php?id=1" class="btn btn-primary">Sākt uzdevumu</a>
+            </div>
+
+            <div class="task-card">
+                <div class="task-card-badge">➖ Atņemšana</div>
+                <h2>Atņemšana</h2>
+                <p>Apgūsti atņemšanu pakāpeniski — no vienkāršā uz sarežģīto.</p>
+                <a href="task.php?id=2" class="btn btn-primary">Sākt uzdevumu</a>
+            </div>
+
+        </div>
+
+    </main>
+
 </body>
 </html>

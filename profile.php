@@ -1,28 +1,75 @@
 <?php
 session_start();
+$initial = isset($_SESSION['uzvards']) ? mb_strtoupper(mb_substr($_SESSION['uzvards'], 0, 1)) : '?';
 ?>
-
 <!DOCTYPE html>
 <html lang="lv">
 <head>
     <meta charset="UTF-8">
-    <title>Sākums</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mans profils — DigiMath</title>
+    <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body class="app-page">
 
-    <h1>Mans profils</h1>
-    <p>Lietotājvārds: <?=$_SESSION['username']?> </p>
+    <header class="site-header">
+        <a href="home.php" class="site-logo">Digi<span>Math</span></a>
+        <nav>
+            <a href="taskdesk.php">Uzdevumi</a>
+        </nav>
+    </header>
 
-    <p>Mans progress: (placeholder)</p>
+    <main class="app-main">
 
-    <p>Klase:   <?=$_SESSION['klase']?> </p>
+        <a href="home.php" class="back-link">← Atpakaļ uz sākumu</a>
 
-    <p>Uzvards: <?=$_SESSION['uzvards']?> </p>
+        <div class="page-heading">
+            <h1>Mans profils</h1>
+        </div>
 
-    <p>Skola:   <?=$_SESSION['skola_name']?> </p>
+        <div class="profile-card">
 
-    <p>E-pasts:   <?=$_SESSION['e-pasts']?> </p>
+            <div class="profile-card-header">
+                <div class="avatar"><?= htmlspecialchars($initial) ?></div>
+                <div>
+                    <div class="name"><?= htmlspecialchars($_SESSION['uzvards'] ?? '—') ?></div>
+                    <div class="handle">@<?= htmlspecialchars($_SESSION['username'] ?? '—') ?></div>
+                </div>
+            </div>
 
-    <a href="home.php">Home</a>
+            <div class="profile-fields">
+                <div class="profile-field">
+                    <label>Lietotājvārds</label>
+                    <span><?= htmlspecialchars($_SESSION['username'] ?? '—') ?></span>
+                </div>
+                <div class="profile-field">
+                    <label>Uzvārds</label>
+                    <span><?= htmlspecialchars($_SESSION['uzvards'] ?? '—') ?></span>
+                </div>
+                <div class="profile-field">
+                    <label>Klase</label>
+                    <span><?= htmlspecialchars($_SESSION['klase'] ?? '—') ?>. klase</span>
+                </div>
+                <div class="profile-field">
+                    <label>Skola</label>
+                    <span><?= htmlspecialchars($_SESSION['skola_name'] ?? '—') ?></span>
+                </div>
+                <div class="profile-field">
+                    <label>E-pasts</label>
+                    <span><?= htmlspecialchars($_SESSION['e-pasts'] ?? '—') ?></span>
+                </div>
+            </div>
+
+            <div class="profile-progress">
+                <p class="progress-label">Mans progress (kopējais)</p>
+                <div class="progress-bar-track">
+                    <div class="progress-bar-fill"></div>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
 </body>
 </html>

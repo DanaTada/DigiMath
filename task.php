@@ -2,129 +2,141 @@
 session_start();
 require 'ai_helper.php';
 
-// Load task by ID from JSON - ONLY on first load (no POST)
-if ($_SERVER['REQUEST_METHOD'] !== 'POST' && isset($_GET['id'])) {
-    $task_id = (int)$_GET['id'];
-    
-    // Load from JSON
-    $json_file = __DIR__ . '/uzdevumi.json';
-    if (file_exists($json_file)) {
-        $content = file_get_contents($json_file);
-        $data = json_decode($content, true);
-        $all_tasks = $data['tasks'] ?? [];
-        
-        // Find the task by ID
-        foreach ($all_tasks as $task) {
-            if ($task['id'] == $task_id) {
-                $_SESSION['current_task'] = $task;
-                $_SESSION['uzdevums'] = $task['text'];
-                $_SESSION['pareiza'] = $task['atbilde'];
-                $_SESSION['current_grade'] = $task['grade'];
-                break;
-            }
-        }
-    }
-    unset($_SESSION['pēdējā_atbilde']);
-    unset($_SESSION['rezultats']);
-    unset($_SESSION['paskaidrojums']);
+if (isset($_GET['id'])) {
+    $_SESSION['tema'] = ($_GET['id'] === '2') ? 'minus' : 'plus';
+    unset($_SESSION['uzdevums']);
 }
 
-// If no task loaded, redirect back
-if (!isset($_SESSION['uzdevums'])) {
-    header('Location: taskdesk.php');
-    exit;
+if (!isset($_SESSION['tema'])) {
+    $_SESSION['tema'] = 'plus';
 }
 
-$paskaidrojums = $_SESSION['paskaidrojums'] ?? '';
-$rezultats     = $_SESSION['rezultats'] ?? '';
-$ievaditā      = $_SESSION['pēdējā_atbilde'] ?? '';
+$paskaidrojums = '';
+$rezultats     = '';
+$rezultats_tips = 'info';
+$ievaditā      = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $darbiba = $_POST['darbiba'] ?? '';
+    $darbiba = isset($_POST['darbiba']) ? $_POST['darbiba'] : '';
     $skolena = isset($_POST['atbilde']) ? trim($_POST['atbilde']) : '';
 
     if ($darbiba === 'atbildet') {
-        $_SESSION['pēdējā_atbilde'] = $skolena;
         $ievaditā = $skolena;
-        
         if ($skolena === '') {
             $rezultats = 'Lūdzu, ievadi atbildi.';
+            $rezultats_tips = 'info';
         } elseif ($skolena === trim($_SESSION['pareiza'])) {
-            $rezultats = 'Pareizi!';
+            $rezultats = '✅ Pareizi! Lieliski!';
+            $rezultats_tips = 'correct';
         } else {
-            $rezultats = 'Nepareizi.';
+            $rezultats = '❌ Nepareizi. Mēģini vēlreiz vai lūdz paskaidrojumu.';
+            $rezultats_tips = 'wrong';
         }
-        $_SESSION['rezultats'] = $rezultats;
-        
     } elseif ($darbiba === 'paskaidrot') {
-        $_SESSION['pēdējā_atbilde'] = $skolena;
-        $ievaditā = $skolena;
-        
         $paskaidrojums = paskaidro_atbildi(
-            $_SESSION['uzdevums'] ?? '',
-            $_SESSION['pareiza'] ?? '',
+            $_SESSION['uzdevums'],
+            $_SESSION['pareiza'],
             $skolena
         );
-        $_SESSION['paskaidrojums'] = $paskaidrojums;
-        
     } elseif ($darbiba === 'jauns') {
-        // Generate NEW task using AI
-        $current_task_text = $_SESSION['uzdevums'];
-        $current_grade = $_SESSION['current_grade'];
-        
-        $new_task = genere_uzdevums_similar($current_task_text, $current_grade);
-        
-        if ($new_task && isset($new_task['uzdevums'], $new_task['atbilde'])) {
-            $_SESSION['uzdevums'] = $new_task['uzdevums'];
-            $_SESSION['pareiza'] = $new_task['atbilde'];
-            $_SESSION['current_grade'] = $current_grade;
-        }
-        
-        $_SESSION['pēdējā_atbilde'] = '';
-        unset($_SESSION['rezultats']);
-        unset($_SESSION['paskaidrojums']);
-        
-        // Redirect to remove ?id from URL
-        header('Location: task.php');
-        exit;
-        
+        $jauns = genere_uzdevums($_SESSION['tema']);
+        $_SESSION['uzdevums'] = $jauns['uzdevums'];
+        $_SESSION['pareiza']  = $jauns['atbilde'];
     } elseif ($darbiba === 'jauna_tema') {
-        // Clear session and go back
-        unset($_SESSION['uzdevums']);
-        unset($_SESSION['pareiza']);
-        unset($_SESSION['pēdējā_atbilde']);
-        unset($_SESSION['rezultats']);
-        unset($_SESSION['paskaidrojums']);
-        header('Location: taskdesk.php');
-        exit;
+        $_SESSION['tema'] = ($_SESSION['tema'] === 'plus') ? 'minus' : 'plus';
+        $jauns = genere_uzdevums($_SESSION['tema']);
+        $_SESSION['uzdevums'] = $jauns['uzdevums'];
+        $_SESSION['pareiza']  = $jauns['atbilde'];
     }
 }
 
-$uzdevums = $_SESSION['uzdevums'] ?? 'Uzdevums nav pieejams';
+if (!isset($_SESSION['uzdevums'])) {
+    $jauns = genere_uzdevums($_SESSION['tema']);
+    $_SESSION['uzdevums'] = $jauns['uzdevums'];
+    $_SESSION['pareiza']  = $jauns['atbilde'];
+}
+
+$uzdevums  = $_SESSION['uzdevums'];
+$tema_label = ($_SESSION['tema'] === 'plus') ? '➕ Saskaitīšana' : '➖ Atņemšana';
+$jauna_tema_label = ($_SESSION['tema'] === 'plus') ? 'Pārslēgties uz atņemšanu' : 'Pārslēgties uz saskaitīšanu';
 ?>
 <!DOCTYPE html>
 <html lang="lv">
 <head>
     <meta charset="UTF-8">
-    <title>Uzdevums</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Uzdevums — DigiMath</title>
+    <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body class="app-page">
 
-    <h1><?= htmlspecialchars($uzdevums) ?></h1>
+    <header class="site-header">
+        <a href="home.php" class="site-logo">Digi<span>Math</span></a>
+        <nav>
+            <a href="taskdesk.php">Uzdevumi</a>
+        </nav>
+    </header>
 
-    <form method="post">
-        <input type="text" name="atbilde" value="<?= htmlspecialchars($ievaditā) ?>">
-        <button type="submit" name="darbiba" value="atbildet">Atbildēt</button>
-        <br><br>
-        <button type="submit" name="darbiba" value="jauns">Jauns uzdevums</button>
-        <button type="submit" name="darbiba" value="paskaidrot">Paskaidrojums</button>
-        <button type="submit" name="darbiba" value="jauna_tema">Cita tēma</button>
-    </form>
+    <main class="app-main">
+        <div class="task-page-inner">
 
-    <p><?= htmlspecialchars($rezultats) ?></p>
-    <p><?= nl2br(htmlspecialchars($paskaidrojums)) ?></p>
+            <a href="taskdesk.php" class="back-link">← Atpakaļ uz uzdevumiem</a>
 
-    <a href="taskdesk.php">Atpakaļ</a>
+            <div class="task-box">
+
+                <div class="task-box-header">
+                    <div class="task-tema-badge"><?= htmlspecialchars($tema_label) ?></div>
+                    <div class="task-question"><?= htmlspecialchars($uzdevums) ?></div>
+                </div>
+
+                <div class="task-box-body">
+                    <form method="post">
+
+                        <div class="answer-row">
+                            <input
+                                type="text"
+                                name="atbilde"
+                                value="<?= htmlspecialchars($ievaditā) ?>"
+                                placeholder="Tava atbilde…"
+                                autocomplete="off"
+                                autofocus>
+                            <button type="submit" name="darbiba" value="atbildet" class="btn btn-primary">
+                                Atbildēt
+                            </button>
+                        </div>
+
+                        <?php if ($rezultats): ?>
+                            <div class="result-box <?= $rezultats_tips ?>">
+                                <?= htmlspecialchars($rezultats) ?>
+                            </div>
+                        <?php endif; ?>
+
+                        <?php if ($paskaidrojums): ?>
+                            <div class="explanation-box">
+                                <strong>🤖 MI paskaidrojums</strong>
+                                <?= nl2br(htmlspecialchars($paskaidrojums)) ?>
+                            </div>
+                        <?php endif; ?>
+
+                        <div class="task-actions" style="margin-top:1.5rem;">
+                            <button type="submit" name="darbiba" value="jauns" class="btn btn-secondary task-actions">
+                                🔄 Jauns uzdevums
+                            </button>
+                            <button type="submit" name="darbiba" value="paskaidrot" class="btn btn-secondary task-actions">
+                                🤖 Paskaidrojums
+                            </button>
+                            <button type="submit" name="darbiba" value="jauna_tema" class="btn btn-secondary task-actions" style="grid-column:1/-1;">
+                                🔀 <?= htmlspecialchars($jauna_tema_label) ?>
+                            </button>
+                        </div>
+
+                    </form>
+                </div>
+
+            </div>
+
+        </div>
+    </main>
 
 </body>
 </html>
