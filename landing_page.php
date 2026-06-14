@@ -11,7 +11,7 @@
 
 <!-- NAV -->
 <nav class="nav">
-  <a href="landing_page.php" class="logo logo--large">
+  <a href="index.php" class="logo logo--large">
     <span class="logo-badge">D</span>
     DigiMath
   </a>

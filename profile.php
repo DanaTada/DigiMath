@@ -18,9 +18,7 @@ $initial = isset($_SESSION['uzvards']) ? mb_strtoupper(mb_substr($_SESSION['uzva
         <nav><a href="taskdesk.php">Uzdevumi</a></nav>
     </header>
 
-    <main class="app-main profile-page-main">
-
-      <div class="profile-wrap">
+    <main class="app-main">
 
         <a href="home.php" class="back-link">← Atpakaļ uz sākumu</a>
 
@@ -60,17 +58,10 @@ $initial = isset($_SESSION['uzvards']) ? mb_strtoupper(mb_substr($_SESSION['uzva
                     <span><?= htmlspecialchars($_SESSION['e-pasts'] ?? '—') ?></span>
                 </div>
             </div>
-
-            <div class="profile-progress">
-                <p class="progress-label">Mans progress (kopējais)</p>
-                <div class="progress-bar-track">
-                    <div class="progress-bar-fill"></div>
                 </div>
             </div>
 
         </div>
-
-      </div>
 
     </main>
 
