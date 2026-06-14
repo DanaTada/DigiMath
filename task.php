@@ -28,17 +28,35 @@ if (!empty($userInfo['uzd_completed'])) {
     $completedTasks = array_map('trim', $completedTasks);
 }
 
-// Function to get next incomplete task for CURRENT GRADE only
-function getNextIncompleteTask($allTasks, $completedTasks, $userGrade) {
+// Function to get next incomplete task by ID order
+function getNextIncompleteTask($allTasks, $completedTasks, $userGrade, $currentTaskId = null) {
+    $incompleteTasks = [];
     foreach($allTasks as $task) {
         if($task['grade'] == $userGrade && !in_array($task['id'], $completedTasks)) {
-            return $task;
+            $incompleteTasks[] = $task;
         }
     }
-    return null;
+    
+    usort($incompleteTasks, function($a, $b) {
+        return $a['id'] - $b['id'];
+    });
+    
+    if (empty($incompleteTasks)) {
+        return null;
+    }
+    
+    if ($currentTaskId) {
+        foreach($incompleteTasks as $task) {
+            if ($task['id'] > $currentTaskId) {
+                return $task;
+            }
+        }
+    }
+    
+    return $incompleteTasks[0];
 }
 
-// Function to get all available tasks (all grades up to user's grade)
+// Function to get all available tasks
 function getAllAvailableTasks($allTasks, $userGrade) {
     $available = [];
     foreach($allTasks as $task) {
@@ -68,7 +86,6 @@ function isGradeComplete($allTasks, $completedTasks, $grade) {
 function upgradeToNextGrade($allTasks, $completedTasks, $currentGrade, $conn, $userId) {
     $nextGrade = $currentGrade + 1;
     
-    // Check if next grade has any tasks
     $hasTasksInNextGrade = false;
     foreach($allTasks as $task) {
         if($task['grade'] == $nextGrade) {
@@ -78,7 +95,6 @@ function upgradeToNextGrade($allTasks, $completedTasks, $currentGrade, $conn, $u
     }
     
     if($hasTasksInNextGrade && $nextGrade <= 9) {
-        // Update user's grade in database
         $update = $conn->prepare("UPDATE user_info SET grade = ? WHERE user_ID = ?");
         $update->execute([$nextGrade, $userId]);
         $_SESSION['klase'] = $nextGrade;
@@ -87,7 +103,7 @@ function upgradeToNextGrade($allTasks, $completedTasks, $currentGrade, $conn, $u
     return $currentGrade;
 }
 
-// Function to generate random local task (fallback)
+// Function to generate random local task
 function generateRandomLocalTask($baseTask = null) {
     $num1 = rand(1, 100);
     $num2 = rand(1, 100);
@@ -141,7 +157,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $rezultats = 'Lūdzu, ievadi atbildi.';
             $rezultats_tips = 'info';
         } elseif ($skolena === trim($_SESSION['pareiza'])) {
-            $rezultats = '✅ Pareizi! Lieliski!';
+            $rezultats = 'Pareizi! Lieliski!';
             $rezultats_tips = 'correct';
             
             if ($_SESSION['mode'] === 'json' && isset($_SESSION['current_task_id'])) {
@@ -152,23 +168,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $newCompleted = implode(',', $completedTasks);
                     $update = $conn->prepare("UPDATE user_info SET uzd_completed = ? WHERE user_ID = ?");
                     $update->execute([$newCompleted, $userId]);
-                    $rezultats .= ' ✅ Progress saglabāts!';
+                    $rezultats .= ' Progress saglabāts!';
                     
-                    // Check if ALL tasks in current grade are completed
                     if (isGradeComplete($allTasks, $completedTasks, $userGrade)) {
-                        // Try to upgrade to next grade
                         $newGrade = upgradeToNextGrade($allTasks, $completedTasks, $userGrade, $conn, $userId);
                         if ($newGrade != $userGrade) {
                             $userGrade = $newGrade;
-                            $rezultats = "🎉 Apsveicam! Tu esi pabeidzis visus " . ($newGrade - 1) . ". klases uzdevumus un pārcelts uz {$newGrade}. klasi!";
+                            $rezultats = "Apsveicam! Tu esi pabeidzis visus " . ($newGrade - 1) . ". klases uzdevumus un pārcelts uz {$newGrade}. klasi!";
                             $rezultats_tips = 'success';
-                            // Clear current task to load new grade task
                             unset($_SESSION['current_task_id']);
                             $needsNewTask = true;
                         } else {
-                            // No more grades, all tasks completed everywhere
                             $_SESSION['all_completed'] = true;
-                            $rezultats = "🏆 Apsveicam! Tu esi pabeidzis VISUS uzdevumus no 1. līdz 9. klasei!";
+                            $rezultats = "Apsveicam! Tu esi pabeidzis visus uzdevumus!";
                             $rezultats_tips = 'success';
                         }
                     }
@@ -178,15 +190,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             
             $needsNewTask = true;
-            $ievadita = ''; // Clear answer field
+            $ievadita = '';
         } else {
-            $rezultats = '❌ Nepareizi. Mēģini vēlreiz.';
+            $rezultats = 'Nepareizi. Mēģini vēlreiz.';
             $rezultats_tips = 'wrong';
-            $ievadita = ''; // Clear answer field on wrong answer too
+            $ievadita = '';
         }
     } elseif ($darbiba === 'jauns') {
-        $needsNewTask = true;
-        $ievadita = '';
+        $currentId = $_SESSION['current_task_id'] ?? null;
+        $nextTask = getNextIncompleteTask($allTasks, $completedTasks, $userGrade, $currentId);
+        
+        if ($nextTask) {
+            $_SESSION['uzdevums'] = $nextTask['text'];
+            $_SESSION['pareiza'] = $nextTask['atbilde'];
+            $_SESSION['current_task_id'] = $nextTask['id'];
+            $_SESSION['current_task_grade'] = $nextTask['grade'];
+            $_SESSION['mode'] = 'json';
+            $rezultats = 'Nākamais uzdevums #' . $nextTask['id'];
+            $rezultats_tips = 'info';
+            $ievadita = '';
+            $needsNewTask = false;
+        } else {
+            $needsNewTask = true;
+        }
     } elseif ($darbiba === 'paskaidrot') {
         $paskaidrojums = paskaidro_atbildi($_SESSION['uzdevums'], $_SESSION['pareiza'], $skolena);
     } elseif ($darbiba === 'ai_prakse') {
@@ -221,17 +247,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['pareiza'] = $randomTask['atbilde'];
         }
         $_SESSION['current_task_id'] = null;
-        $rezultats = '🤖 AI prakses režīms - veicot uzdevumus, progress netiek saglabāts!';
+        $rezultats = 'AI prakses režīms - progress netiek saglabāts!';
         $rezultats_tips = 'info';
         $ievadita = '';
     } elseif ($darbiba === 'atpakal_json') {
         $_SESSION['mode'] = 'json';
         $needsNewTask = true;
-        $rezultats = '📚 Atgriezies pie pamata uzdevumiem - progress tiks saglabāts!';
+        $rezultats = 'Atgriezies pie pamata uzdevumiem - progress tiks saglabāts!';
         $rezultats_tips = 'info';
         $ievadita = '';
     } elseif ($darbiba === 'jauns_ai') {
-        // Generate NEW AI task - ALWAYS create a fresh task
         if (isset($_SESSION['ai_base_task_id'])) {
             $baseTask = null;
             foreach($allTasks as $task) {
@@ -245,27 +270,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if ($aiTask && isset($aiTask['uzdevums'], $aiTask['atbilde'])) {
                     $_SESSION['uzdevums'] = $aiTask['uzdevums'];
                     $_SESSION['pareiza'] = $aiTask['atbilde'];
-                    $rezultats = '🔄 Jauns AI uzdevums ģenerēts!';
+                    $rezultats = 'Jauns AI uzdevums ģenerēts!';
                     $rezultats_tips = 'info';
                 } else {
                     $randomTask = generateRandomLocalTask($baseTask);
                     $_SESSION['uzdevums'] = $randomTask['uzdevums'];
                     $_SESSION['pareiza'] = $randomTask['atbilde'];
-                    $rezultats = '🔄 Jauns uzdevums ģenerēts!';
+                    $rezultats = 'Jauns uzdevums ģenerēts!';
                     $rezultats_tips = 'info';
                 }
             } else {
                 $randomTask = generateRandomLocalTask();
                 $_SESSION['uzdevums'] = $randomTask['uzdevums'];
                 $_SESSION['pareiza'] = $randomTask['atbilde'];
-                $rezultats = '🔄 Jauns uzdevums ģenerēts!';
+                $rezultats = 'Jauns uzdevums ģenerēts!';
                 $rezultats_tips = 'info';
             }
         } else {
             $randomTask = generateRandomLocalTask();
             $_SESSION['uzdevums'] = $randomTask['uzdevums'];
             $_SESSION['pareiza'] = $randomTask['atbilde'];
-            $rezultats = '🔄 Jauns uzdevums ģenerēts!';
+            $rezultats = 'Jauns uzdevums ģenerēts!';
             $rezultats_tips = 'info';
         }
         $ievadita = '';
@@ -284,19 +309,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['current_task_id'] = $selectedTask['id'];
             $_SESSION['current_task_grade'] = $selectedTask['grade'];
             $_SESSION['mode'] = 'json';
-            $rezultats = '📚 Ielādēts uzdevums #' . $selectedTaskId;
+            $rezultats = 'Ielādēts uzdevums #' . $selectedTaskId;
             $rezultats_tips = 'info';
             $ievadita = '';
         }
     }
 }
 
-// Refresh user grade from session (might have been upgraded)
+// Refresh user grade from session
 $userGrade = $_SESSION['klase'];
 
 // Load new JSON task if needed
 if ($_SESSION['mode'] === 'json' && ($needsNewTask || !isset($_SESSION['current_task_id']))) {
-    $nextTask = getNextIncompleteTask($allTasks, $completedTasks, $userGrade);
+    $currentId = $_SESSION['current_task_id'] ?? null;
+    $nextTask = getNextIncompleteTask($allTasks, $completedTasks, $userGrade, $currentId);
     
     if ($nextTask) {
         $_SESSION['uzdevums'] = $nextTask['text'];
@@ -305,18 +331,17 @@ if ($_SESSION['mode'] === 'json' && ($needsNewTask || !isset($_SESSION['current_
         $_SESSION['current_task_grade'] = $nextTask['grade'];
         unset($_SESSION['all_completed']);
     } else {
-        // No tasks in current grade - check if we can upgrade
         if (isGradeComplete($allTasks, $completedTasks, $userGrade)) {
             $newGrade = upgradeToNextGrade($allTasks, $completedTasks, $userGrade, $conn, $userId);
             if ($newGrade != $userGrade) {
                 $userGrade = $newGrade;
-                $nextTask = getNextIncompleteTask($allTasks, $completedTasks, $userGrade);
+                $nextTask = getNextIncompleteTask($allTasks, $completedTasks, $userGrade, null);
                 if ($nextTask) {
                     $_SESSION['uzdevums'] = $nextTask['text'];
                     $_SESSION['pareiza'] = $nextTask['atbilde'];
                     $_SESSION['current_task_id'] = $nextTask['id'];
                     $_SESSION['current_task_grade'] = $nextTask['grade'];
-                    $rezultats = "🎉 Apsveicam! Pārcelts uz {$userGrade}. klasi!";
+                    $rezultats = "Apsveicam! Pārcelts uz {$userGrade}. klasi!";
                     $rezultats_tips = 'success';
                 }
             } else {
@@ -330,19 +355,6 @@ if ($_SESSION['mode'] === 'json' && ($needsNewTask || !isset($_SESSION['current_
 
 $uzdevums = $_SESSION['uzdevums'] ?? '';
 $allCompleted = isset($_SESSION['all_completed']) && $_SESSION['all_completed'] === true;
-
-// Calculate progress for current grade
-$totalCurrentGradeTasks = 0;
-$completedCurrentGradeTasks = 0;
-foreach($allTasks as $task) {
-    if($task['grade'] == $userGrade) {
-        $totalCurrentGradeTasks++;
-        if(in_array($task['id'], $completedTasks)) {
-            $completedCurrentGradeTasks++;
-        }
-    }
-}
-$progressPercent = $totalCurrentGradeTasks > 0 ? round(($completedCurrentGradeTasks / $totalCurrentGradeTasks) * 100) : 0;
 
 // Get all available tasks for the selector
 $availableTasks = getAllAvailableTasks($allTasks, $userGrade);
@@ -371,14 +383,6 @@ $availableTasks = getAllAvailableTasks($allTasks, $userGrade);
             border-radius: 5px;
             margin: 10px 0;
         }
-        .completion-badge {
-            background: #4caf50;
-            color: white;
-            padding: 5px 10px;
-            border-radius: 5px;
-            font-size: 12px;
-            margin-left: 10px;
-        }
         .fade-message {
             animation: fadeOut 3s ease forwards;
         }
@@ -404,14 +408,12 @@ $availableTasks = getAllAvailableTasks($allTasks, $userGrade);
 
             <a href="home.php" class="back-link">← Atpakaļ uz sākumu</a>
 
-        
-
             <!-- Task Selector -->
             <div class="task-selector">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <strong>📋 Visi uzdevumi (1.-<?= $userGrade ?>. klase)</strong>
+                    <strong>Visi uzdevumi (1.-<?= $userGrade ?>. klase)</strong>
                     <?php if($allCompleted): ?>
-                        <span class="completion-badge">✅ Visi pabeigti!</span>
+                        <span style="background: #4caf50; color: white; padding: 5px 10px; border-radius: 5px; font-size: 12px;">Visi pabeigti!</span>
                     <?php endif; ?>
                 </div>
                 <form method="post">
@@ -427,7 +429,7 @@ $availableTasks = getAllAvailableTasks($allTasks, $userGrade);
                         <?php 
                             endif;
                             $isCompleted = in_array($task['id'], $completedTasks);
-                            $status = $isCompleted ? '✅ ' : '⏳ ';
+                            $status = $isCompleted ? '✓ ' : '○ ';
                         ?>
                             <option value="<?= $task['id'] ?>" <?= (isset($_SESSION['current_task_id']) && $_SESSION['current_task_id'] == $task['id']) ? 'selected' : '' ?>>
                                 <?= $status ?>Uzdevums #<?= $task['id'] ?>: <?= htmlspecialchars(substr($task['text'], 0, 40)) ?>...
@@ -435,23 +437,18 @@ $availableTasks = getAllAvailableTasks($allTasks, $userGrade);
                         <?php endforeach; ?>
                     </select>
                     <button type="submit" name="darbiba" value="izveleties_uzdevumu" class="btn-secondary" style="width: 100%; margin-top: 10px;">
-                        📚 Ielādēt izvēlēto uzdevumu
+                        Ielādēt izvēlēto uzdevumu
                     </button>
                 </form>
-                <?php if($allCompleted): ?>
-                    <div style="margin-top: 10px; text-align: center; color: #4caf50;">
-                        🎉 Apsveicam! Tu esi pabeidzis visus uzdevumus no 1. līdz 9. klasei!
-                    </div>
-                <?php endif; ?>
             </div>
 
             <div class="task-box">
                 <div class="task-box-header">
                     <div class="task-tema-badge">
                         <?php if($_SESSION['mode'] === 'json' && isset($_SESSION['current_task_id'])): ?>
-                            📝 Uzdevums
+                            Pamata uzdevums
                         <?php elseif($_SESSION['mode'] === 'ai'): ?>
-                            🤖 AI ģenerēts uzdevums
+                            AI ģenerēts uzdevums
                         <?php endif; ?>
                     </div>
                     <div class="task-question"><?= htmlspecialchars($uzdevums) ?></div>
@@ -476,8 +473,8 @@ $availableTasks = getAllAvailableTasks($allTasks, $userGrade);
                         <?php endif; ?>
 
                         <?php if ($paskaidrojums): ?>
-                            <div id="explanationMessage" class="explanation-box ">
-                                <strong>🤖 MI paskaidrojums</strong>
+                            <div id="explanationMessage" class="explanation-box">
+                                <strong>MI paskaidrojums</strong>
                                 <?= nl2br(htmlspecialchars($paskaidrojums)) ?>
                             </div>
                         <?php endif; ?>
@@ -485,23 +482,23 @@ $availableTasks = getAllAvailableTasks($allTasks, $userGrade);
                         <div class="task-actions">
                             <?php if($_SESSION['mode'] === 'json'): ?>
                                 <button type="submit" name="darbiba" value="jauns" class="btn-secondary">
-                                    🔄 Nākamais uzdevums
+                                    Nākamais uzdevums
                                 </button>
                                 <button type="submit" name="darbiba" value="paskaidrot" class="btn-secondary">
-                                    🤖 Paskaidrojums
+                                    Paskaidrojums
                                 </button>
                                 <button type="submit" name="darbiba" value="ai_prakse" class="btn-secondary" style="grid-column:1/-1;">
-                                    🎲 Sākt AI praksi (līdzīgi uzdevumi)
+                                    Sākt AI praksi (līdzīgi uzdevumi)
                                 </button>
                             <?php else: ?>
                                 <button type="submit" name="darbiba" value="jauns_ai" class="btn-secondary">
-                                    🔄 Jauns AI uzdevums
+                                    Jauns AI uzdevums
                                 </button>
                                 <button type="submit" name="darbiba" value="paskaidrot" class="btn-secondary">
-                                    🤖 Paskaidrojums
+                                    Paskaidrojums
                                 </button>
                                 <button type="submit" name="darbiba" value="atpakal_json" class="btn-secondary">
-                                    📚 Atpakaļ uz pamata uzdevumiem
+                                    Atpakaļ uz pamata uzdevumiem
                                 </button>
                             <?php endif; ?>
                         </div>
@@ -514,26 +511,19 @@ $availableTasks = getAllAvailableTasks($allTasks, $userGrade);
     </main>
 
     <script>
-        // Clear input field after form submission
         document.addEventListener('DOMContentLoaded', function() {
-            const form = document.getElementById('taskForm');
             const answerInput = document.getElementById('answerInput');
-            
-            // Clear the input field when page loads (if there's no value or it was submitted)
             if (answerInput && answerInput.value !== '') {
-                // Keep the value only if it's from a failed submission? Better to clear
-                // Actually let's clear it always on page load for fresh start
                 answerInput.value = '';
             }
             
-            // Fade out messages after 3 seconds
             const messages = document.querySelectorAll('.fade-message');
             messages.forEach(function(message) {
                 setTimeout(function() {
                     message.style.opacity = '0';
                     message.style.visibility = 'hidden';
                     message.style.display = 'none';
-                }, 9000);
+                }, 3000);
             });
         });
     </script>
