@@ -1,0 +1,35 @@
+/* ============================================================
+   taskdesk.css — стили только для taskdesk.php
+   ============================================================ */
+
+.task-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.task-card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  padding: 30px 28px;
+  display: flex; flex-direction: column;
+  transition: transform .2s, border-color .2s;
+}
+.task-card:hover { transform: translateY(-4px); border-color: rgba(255,217,61,.35); }
+
+.task-card-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  align-self: flex-start;
+  background: rgba(255,217,61,.12);
+  color: var(--yellow);
+  font-weight: 700; font-size: 13px;
+  padding: 6px 14px; border-radius: 999px;
+  text-transform: uppercase; letter-spacing: .04em;
+  margin-bottom: 18px;
+}
+.task-card h2 {
+  font-family: var(--font-display); font-weight: 800; font-size: 22px;
+  margin-bottom: 10px;
+}
+.task-card p { color: var(--soft); font-size: 15px; line-height: 1.6; margin-bottom: 24px; flex-grow: 1; }

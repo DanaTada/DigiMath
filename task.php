@@ -6,15 +6,14 @@ if (isset($_GET['id'])) {
     $_SESSION['tema'] = ($_GET['id'] === '2') ? 'minus' : 'plus';
     unset($_SESSION['uzdevums']);
 }
-
 if (!isset($_SESSION['tema'])) {
     $_SESSION['tema'] = 'plus';
 }
 
-$paskaidrojums = '';
-$rezultats     = '';
+$paskaidrojums  = '';
+$rezultats      = '';
 $rezultats_tips = 'info';
-$ievaditā      = '';
+$ievaditā       = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $darbiba = isset($_POST['darbiba']) ? $_POST['darbiba'] : '';
@@ -33,11 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $rezultats_tips = 'wrong';
         }
     } elseif ($darbiba === 'paskaidrot') {
-        $paskaidrojums = paskaidro_atbildi(
-            $_SESSION['uzdevums'],
-            $_SESSION['pareiza'],
-            $skolena
-        );
+        $paskaidrojums = paskaidro_atbildi($_SESSION['uzdevums'], $_SESSION['pareiza'], $skolena);
     } elseif ($darbiba === 'jauns') {
         $jauns = genere_uzdevums($_SESSION['tema']);
         $_SESSION['uzdevums'] = $jauns['uzdevums'];
@@ -56,8 +51,8 @@ if (!isset($_SESSION['uzdevums'])) {
     $_SESSION['pareiza']  = $jauns['atbilde'];
 }
 
-$uzdevums  = $_SESSION['uzdevums'];
-$tema_label = ($_SESSION['tema'] === 'plus') ? '➕ Saskaitīšana' : '➖ Atņemšana';
+$uzdevums         = $_SESSION['uzdevums'];
+$tema_label       = ($_SESSION['tema'] === 'plus') ? '➕ Saskaitīšana' : '➖ Atņemšana';
 $jauna_tema_label = ($_SESSION['tema'] === 'plus') ? 'Pārslēgties uz atņemšanu' : 'Pārslēgties uz saskaitīšanu';
 ?>
 <!DOCTYPE html>
@@ -66,15 +61,14 @@ $jauna_tema_label = ($_SESSION['tema'] === 'plus') ? 'Pārslēgties uz atņemša
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Uzdevums — DigiMath</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/task.css">
 </head>
 <body class="app-page">
 
     <header class="site-header">
         <a href="home.php" class="site-logo">Digi<span>Math</span></a>
-        <nav>
-            <a href="taskdesk.php">Uzdevumi</a>
-        </nav>
+        <nav><a href="taskdesk.php">Uzdevumi</a></nav>
     </header>
 
     <main class="app-main">
@@ -83,7 +77,6 @@ $jauna_tema_label = ($_SESSION['tema'] === 'plus') ? 'Pārslēgties uz atņemša
             <a href="taskdesk.php" class="back-link">← Atpakaļ uz uzdevumiem</a>
 
             <div class="task-box">
-
                 <div class="task-box-header">
                     <div class="task-tema-badge"><?= htmlspecialchars($tema_label) ?></div>
                     <div class="task-question"><?= htmlspecialchars($uzdevums) ?></div>
@@ -93,14 +86,10 @@ $jauna_tema_label = ($_SESSION['tema'] === 'plus') ? 'Pārslēgties uz atņemša
                     <form method="post">
 
                         <div class="answer-row">
-                            <input
-                                type="text"
-                                name="atbilde"
-                                value="<?= htmlspecialchars($ievaditā) ?>"
-                                placeholder="Tava atbilde…"
-                                autocomplete="off"
-                                autofocus>
-                            <button type="submit" name="darbiba" value="atbildet" class="btn btn-primary">
+                            <input type="text" name="atbilde"
+                                   value="<?= htmlspecialchars($ievaditā) ?>"
+                                   placeholder="Tava atbilde…" autocomplete="off" autofocus>
+                            <button type="submit" name="darbiba" value="atbildet" class="btn-primary">
                                 Atbildēt
                             </button>
                         </div>
@@ -118,21 +107,20 @@ $jauna_tema_label = ($_SESSION['tema'] === 'plus') ? 'Pārslēgties uz atņemša
                             </div>
                         <?php endif; ?>
 
-                        <div class="task-actions" style="margin-top:1.5rem;">
-                            <button type="submit" name="darbiba" value="jauns" class="btn btn-secondary task-actions">
+                        <div class="task-actions">
+                            <button type="submit" name="darbiba" value="jauns" class="btn-secondary">
                                 🔄 Jauns uzdevums
                             </button>
-                            <button type="submit" name="darbiba" value="paskaidrot" class="btn btn-secondary task-actions">
+                            <button type="submit" name="darbiba" value="paskaidrot" class="btn-secondary">
                                 🤖 Paskaidrojums
                             </button>
-                            <button type="submit" name="darbiba" value="jauna_tema" class="btn btn-secondary task-actions" style="grid-column:1/-1;">
+                            <button type="submit" name="darbiba" value="jauna_tema" class="btn-secondary" style="grid-column:1/-1;">
                                 🔀 <?= htmlspecialchars($jauna_tema_label) ?>
                             </button>
                         </div>
 
                     </form>
                 </div>
-
             </div>
 
         </div>

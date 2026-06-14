@@ -1,0 +1,36 @@
+/* ============================================================
+   home.css — стили только для home.php
+   ============================================================ */
+
+.home-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 18px;
+}
+
+.nav-card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 28px 26px;
+  text-decoration: none; color: var(--white);
+  transition: transform .2s, border-color .2s;
+  display: block;
+}
+.nav-card:hover { transform: translateY(-4px); border-color: rgba(255,217,61,.35); }
+
+.nav-card-icon {
+  width: 52px; height: 52px; border-radius: 14px;
+  background: rgba(255,217,61,.12);
+  display: grid; place-items: center; font-size: 26px;
+  margin-bottom: 18px;
+}
+.nav-card h2 {
+  font-family: var(--font-display); font-weight: 800; font-size: 19px;
+  margin-bottom: 8px;
+}
+.nav-card p { color: var(--soft); font-size: 14px; line-height: 1.55; }
+
+/* Кнопка "Iziet" — красноватый акцент */
+.nav-card.danger:hover { border-color: rgba(255,107,107,.5); }
+.nav-card.danger .nav-card-icon { background: rgba(255,107,107,.14); }

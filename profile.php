@@ -8,15 +8,14 @@ $initial = isset($_SESSION['uzvards']) ? mb_strtoupper(mb_substr($_SESSION['uzva
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mans profils — DigiMath</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/profile.css">
 </head>
 <body class="app-page">
 
     <header class="site-header">
         <a href="home.php" class="site-logo">Digi<span>Math</span></a>
-        <nav>
-            <a href="taskdesk.php">Uzdevumi</a>
-        </nav>
+        <nav><a href="taskdesk.php">Uzdevumi</a></nav>
     </header>
 
     <main class="app-main">

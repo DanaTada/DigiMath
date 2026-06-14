@@ -1,0 +1,78 @@
+/* ============================================================
+   task.css — стили только для task.php
+   ============================================================ */
+
+.task-page-inner { max-width: 580px; margin: 0 auto; }
+
+.task-box {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  overflow: hidden;
+  box-shadow: 0 24px 60px rgba(0,0,0,.4);
+}
+
+/* Верхняя часть — пример */
+.task-box-header {
+  padding: 40px 32px;
+  text-align: center;
+  background: linear-gradient(135deg, #1F3160 0%, #162347 100%);
+  border-bottom: 1px solid var(--line);
+}
+.task-tema-badge {
+  display: inline-block;
+  background: rgba(255,217,61,.14); color: var(--yellow);
+  font-weight: 700; font-size: 13px;
+  padding: 6px 16px; border-radius: 999px; margin-bottom: 20px;
+}
+.task-question {
+  font-family: var(--font-display); font-weight: 900;
+  font-size: clamp(40px, 8vw, 56px); letter-spacing: 1px;
+}
+
+/* Нижняя часть — форма */
+.task-box-body { padding: 32px; }
+
+.answer-row { display: flex; gap: 12px; }
+.answer-row input {
+  flex: 1;
+  background: rgba(255,255,255,.06);
+  border: 1.5px solid var(--line); border-radius: 12px;
+  padding: 14px 18px;
+  font-family: var(--font-body); font-size: 18px; font-weight: 700;
+  color: var(--white); outline: none; text-align: center;
+  transition: border-color .2s;
+}
+.answer-row input::placeholder { color: rgba(255,255,255,.25); font-weight: 400; }
+.answer-row input:focus { border-color: var(--yellow); }
+
+/* Результат проверки */
+.result-box {
+  margin-top: 18px; padding: 14px 18px;
+  border-radius: 12px; font-weight: 700; font-size: 15px;
+  border: 1px solid;
+}
+.result-box.correct { background: rgba(31,169,138,.14); border-color: rgba(31,169,138,.4); color: #4FD1B0; }
+.result-box.wrong   { background: rgba(255,107,107,.12); border-color: rgba(255,107,107,.4); color: var(--red); }
+.result-box.info    { background: rgba(255,217,61,.10);  border-color: rgba(255,217,61,.35); color: var(--yellow); }
+
+/* AI объяснение */
+.explanation-box {
+  margin-top: 18px; padding: 18px 20px;
+  background: rgba(74,144,217,.10);
+  border: 1px solid rgba(74,144,217,.35);
+  border-radius: 14px;
+  font-size: 15px; line-height: 1.65; color: #DCE6F5;
+}
+.explanation-box strong {
+  display: block; color: var(--white);
+  font-family: var(--font-display); font-size: 15px;
+  margin-bottom: 10px;
+}
+
+/* Кнопки действий */
+.task-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
