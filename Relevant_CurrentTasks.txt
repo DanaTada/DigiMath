@@ -1,4 +1,4 @@
-1)Создать landing_page.php, внутри 2 кнопки "Pieslēgties","Izveidot kontu",без функцилнала. (DANA) ---(в процессе)
+1)Создать index.php, внутри 2 кнопки "Pieslēgties","Izveidot kontu",без функцилнала. (DANA) ---(в процессе)
 
 
 

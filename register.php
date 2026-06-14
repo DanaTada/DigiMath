@@ -1,21 +1,24 @@
-<?php
+<?php 
 include "connect_to_db.php";
 
-$kludas = '';
+$error   = '';
+$success = false;
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $username_input = $_POST['username'];
-
     $check_stmt = $conn->prepare("SELECT user_ID FROM users WHERE username = ?");
     $check_stmt->execute([$username_input]);
     $check_result = $check_stmt->get_result();
 
     if ($check_result->num_rows > 0) {
-        $kludas = 'Lietotājvārds jau ir aizņemts! Lūdzu, izvēlieties citu.';
+        $error = "Lietotājvārds jau ir aizņemts! Lūdzu, izvēlieties citu.";
     } else {
         $stmt_user = $conn->prepare("INSERT INTO users (username, password) VALUES (?, ?)");
-        $success_user = $stmt_user->execute([$username_input, $_POST['password']]);
-
+        $success_user = $stmt_user->execute([
+            $username_input,
+            $_POST['password']
+        ]);
+        
         if ($success_user) {
             $new_user_id = $conn->insert_id;
             $sql_info = "INSERT INTO user_info (user_ID, username, actual_surname, grade, School_name, email) 
@@ -29,12 +32,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $_POST['skola_name'],
                 $_POST['e-pasts']
             ]);
-
-            if ($success_info) {
-                header("Location: login.php");
-                exit();
+            if (!$success_info) {
+                $error = "Kļūda: nevarēja saglabāt lietotāja informāciju.";
             } else {
-                $kludas = 'Kļūda! Neizdevās saglabāt informāciju.';
+                $success = true;
             }
         }
     }
@@ -43,83 +44,144 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <!DOCTYPE html>
 <html lang="lv">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Reģistrācija — DigiMath</title>
-  <link rel="stylesheet" href="css/base.css">
-  <link rel="stylesheet" href="css/register.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reģistrācija — DigiMath</title>
+    <link rel="stylesheet" href="style.css">
 </head>
-<body class="page-auth">
+<body class="auth-page">
 
-  <a href="landing_page.php" class="back-link">← Atpakaļ uz sākumu</a>
+    <header class="site-header">
+        <a href="index.php" class="site-logo">Digi<span>Math</span></a>
+        <nav>
+            <a href="login.php">Ieiet</a>
+        </nav>
+    </header>
 
-  <a href="landing_page.php" class="logo" style="margin-bottom:36px">
-    <span class="logo-badge">D</span>
-    DigiMath
-  </a>
+    <main class="auth-body">
+        <div class="auth-card">
 
-  <div class="card" style="width:100%;max-width:460px">
-    <h1>Izveido kontu</h1>
-    <p class="sub">Pievienojies DigiMath un sāc mācīties jau šodien.</p>
+            <div class="auth-card-logo">
+                <div class="brand">Digi<span>Math</span></div>
+            </div>
 
-    <?php if ($kludas): ?>
-      <div class="alert alert--error">⚠️ <?= htmlspecialchars($kludas) ?></div>
-    <?php endif; ?>
+            <h1>Izveidot kontu</h1>
+            <p class="auth-subtitle">Pievienojies un sāc mācīties matemātiku ar MI</p>
 
-    <form action="register.php" method="post">
-      <div class="row-2">
-        <div class="field">
-          <label for="username">Lietotājvārds</label>
-          <input type="text" id="username" name="username"
-                 maxlength="30" pattern="[A-Za-z0-9_]{1,30}"
-                 placeholder="lietotajvards" required>
+            <?php if ($error): ?>
+                <div class="error-msg"><?= htmlspecialchars($error) ?></div>
+            <?php endif; ?>
+
+            <?php if ($success): ?>
+                <div style="background:#F0FDF4;border:1px solid #BBF7D0;border-radius:10px;padding:.75rem 1rem;color:#15803D;font-size:.875rem;font-weight:500;margin-bottom:1.25rem;">
+                    ✅ Konts veiksmīgi izveidots! <a href="login.php">Ienākt</a>
+                </div>
+            <?php endif; ?>
+
+            <form action="?" method="post">
+
+                <p class="form-divider">Pieteikšanās dati</p>
+
+                <div class="form-group">
+                    <label for="username">Lietotājvārds</label>
+                    <input
+                        type="text"
+                        id="username"
+                        name="username"
+                        maxlength="30"
+                        pattern="[A-Za-z0-9_]{1,30}"
+                        placeholder="tavs_lietotājvārds"
+                        required
+                        autocomplete="username">
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Parole</label>
+                    <input
+                        type="password"
+                        id="password"
+                        name="password"
+                        maxlength="30"
+                        placeholder="••••••••"
+                        required
+                        autocomplete="new-password">
+                </div>
+
+                <p class="form-divider">Par tevi</p>
+
+                <div class="form-group">
+                    <label for="vards">Vārds</label>
+                    <input
+                        type="text"
+                        id="vards"
+                        name="vards"
+                        maxlength="30"
+                        pattern="[A-Za-z0-9_]{1,30}"
+                        placeholder="Jānis"
+                        required>
+                </div>
+
+                <div class="form-group">
+                    <label for="uzvards">Uzvārds</label>
+                    <input
+                        type="text"
+                        id="uzvards"
+                        name="uzvards"
+                        maxlength="30"
+                        pattern="[A-Za-z0-9_]{1,30}"
+                        placeholder="Bērziņš"
+                        required>
+                </div>
+
+                <div class="form-group">
+                    <label for="klase">Klase</label>
+                    <div class="select-wrap">
+                        <select name="klase" id="klase">
+                            <option value="1">1. klase</option>
+                            <option value="2">2. klase</option>
+                            <option value="3">3. klase</option>
+                            <option value="4">4. klase</option>
+                            <option value="5">5. klase</option>
+                            <option value="6">6. klase</option>
+                            <option value="7">7. klase</option>
+                            <option value="8">8. klase</option>
+                            <option value="9">9. klase</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="skola_name">Skolas nosaukums</label>
+                    <input
+                        type="text"
+                        id="skola_name"
+                        name="skola_name"
+                        maxlength="30"
+                        pattern="[A-Za-z0-9_\s]{1,30}"
+                        placeholder="Rīgas 1. vidusskola"
+                        required>
+                </div>
+
+                <div class="form-group">
+                    <label for="e-pasts">E-pasta adrese</label>
+                    <input
+                        type="email"
+                        id="e-pasts"
+                        name="e-pasts"
+                        maxlength="30"
+                        placeholder="vards@skola.lv"
+                        required
+                        autocomplete="email">
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-full">Izveidot kontu</button>
+
+            </form>
+
+            <p class="auth-link">Jau ir konts? <a href="login.php">Ienākt</a></p>
+
         </div>
-        <div class="field">
-          <label for="uzvards">Uzvārds</label>
-          <input type="text" id="uzvards" name="uzvards"
-                 maxlength="30" placeholder="Bērziņš" required>
-        </div>
-      </div>
-
-      <div class="field">
-        <label for="password">Parole</label>
-        <input type="password" id="password" name="password"
-               maxlength="30" placeholder="••••••••" required>
-      </div>
-
-      <hr class="divider">
-
-      <div class="row-2">
-        <div class="field">
-          <label for="klase">Klase</label>
-          <div class="select-wrap">
-            <select id="klase" name="klase">
-              <?php for ($i = 1; $i <= 9; $i++): ?>
-                <option value="<?= $i ?>"><?= $i ?>. klase</option>
-              <?php endfor; ?>
-            </select>
-          </div>
-        </div>
-        <div class="field">
-          <label for="e-pasts">E-pasts</label>
-          <input type="email" id="e-pasts" name="e-pasts"
-                 maxlength="50" placeholder="epasts@pasts.lv" required>
-        </div>
-      </div>
-
-      <div class="field">
-        <label for="skola_name">Skolas nosaukums</label>
-        <input type="text" id="skola_name" name="skola_name"
-               maxlength="60" placeholder="Rīgas 1. vidusskola" required>
-      </div>
-
-      <button type="submit" class="btn btn--yellow btn--md btn--full" style="margin-top:6px">
-        Izveidot kontu
-      </button>
-    </form>
-  </div>
-
-  <p class="foot-link">Jau ir konts? <a href="login.php">Pieslēgties</a></p>
+    </main>
 
 </body>
 </html>

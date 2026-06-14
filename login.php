@@ -43,9 +43,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 </head>
 <body class="page-auth">
 
-  <a href="landing_page.php" class="back-link">← Atpakaļ uz sākumu</a>
+  <a href="index.php" class="back-link">← Atpakaļ uz sākumu</a>
 
-  <a href="landing_page.php" class="logo" style="margin-bottom:36px">
+  <a href="index.php" class="logo" style="margin-bottom:36px">
     <span class="logo-badge">D</span>
     DigiMath
   </a>
