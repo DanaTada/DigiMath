@@ -27,13 +27,20 @@
 }
 .task-question {
   font-family: var(--font-display); font-weight: 900;
-  font-size: clamp(40px, 8vw, 56px); letter-spacing: 1px;
+  font-size: clamp(30px, 6vw, 46px); letter-spacing: 1px;
+  line-height: 1.25;
+  word-break: break-word;
+}
+.task-question div + div {
+  font-size: .8em;
+  color: var(--soft);
+  margin-top: 6px;
 }
 
 /* Нижняя часть — форма */
 .task-box-body { padding: 32px; }
 
-.answer-row { display: flex; gap: 12px; }
+.answer-row { display: flex; gap: 12px; margin-bottom: 8px; }
 .answer-row input {
   flex: 1;
   background: rgba(255,255,255,.06);
@@ -74,5 +81,18 @@
 .task-actions {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  gap: 16px;
+  margin-top: 28px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+}
+.task-actions .btn-secondary {
+  padding: 15px 20px;
+}
+
+/* Padoms par atbildes formātu */
+.answer-hint {
+  margin-top: 10px;
+  font-size: 13px;
+  color: var(--soft);
 }

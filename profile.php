@@ -18,7 +18,9 @@ $initial = isset($_SESSION['uzvards']) ? mb_strtoupper(mb_substr($_SESSION['uzva
         <nav><a href="taskdesk.php">Uzdevumi</a></nav>
     </header>
 
-    <main class="app-main">
+    <main class="app-main profile-page-main">
+
+      <div class="profile-wrap">
 
         <a href="home.php" class="back-link">← Atpakaļ uz sākumu</a>
 
@@ -67,6 +69,8 @@ $initial = isset($_SESSION['uzvards']) ? mb_strtoupper(mb_substr($_SESSION['uzva
             </div>
 
         </div>
+
+      </div>
 
     </main>
 

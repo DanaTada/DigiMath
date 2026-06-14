@@ -2,12 +2,27 @@
    profile.css — стили только для profile.php
    ============================================================ */
 
+/* Центрируем весь блок профиля по центру экрана при любом масштабе.
+   min-height учитывает высоту шапки (~75px). */
+.profile-page-main {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - 75px);
+  padding: 40px 24px;
+}
+
+.profile-wrap {
+  width: 100%;
+  max-width: 560px;
+}
+
 .profile-card {
+  width: 100%;
   background: var(--card);
   border: 1px solid var(--line);
   border-radius: 22px;
   padding: 32px;
-  max-width: 560px;
   box-shadow: 0 24px 60px rgba(0,0,0,.4);
 }
 

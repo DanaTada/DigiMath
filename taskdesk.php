@@ -1,3 +1,15 @@
+<?php
+session_start();
+
+// Ielādē tēmas no JSON
+$VISI = json_decode(file_get_contents(__DIR__ . '/uzdevumi.json'), true);
+
+// Skolēna klase no sesijas (vai 1, ja nav)
+$klase = isset($_SESSION['klase']) ? (int)$_SESSION['klase'] : 1;
+if (!isset($VISI[$klase])) { $klase = 1; }
+
+$temas = $VISI[$klase]; // 2 tēmas šai klasei
+?>
 <!DOCTYPE html>
 <html lang="lv">
 <head>
@@ -20,25 +32,18 @@
 
         <div class="page-heading">
             <h1>Uzdevumi</h1>
-            <p>Izvēlies tēmu un sāc risināt!</p>
+            <p><?= $klase ?>. klases tēmas — izvēlies un sāc risināt!</p>
         </div>
 
         <div class="task-grid">
-
-            <div class="task-card">
-                <div class="task-card-badge">➕ Saskaitīšana</div>
-                <h2>Saskaitīšana</h2>
-                <p>Trenē saskaitīšanas prasmes ar dažāda grūtuma piemēriem un MI palīdzību.</p>
-                <a href="task.php?id=1" class="btn-primary">Sākt uzdevumu</a>
-            </div>
-
-            <div class="task-card">
-                <div class="task-card-badge">➖ Atņemšana</div>
-                <h2>Atņemšana</h2>
-                <p>Apgūsti atņemšanu pakāpeniski — no vienkāršā uz sarežģīto.</p>
-                <a href="task.php?id=2" class="btn-primary">Sākt uzdevumu</a>
-            </div>
-
+            <?php foreach ($temas as $t): ?>
+                <div class="task-card">
+                    <div class="task-card-badge"><?= htmlspecialchars($t['icon']) ?> <?= htmlspecialchars($t['label']) ?></div>
+                    <h2><?= htmlspecialchars($t['label']) ?></h2>
+                    <p><?= htmlspecialchars($t['apraksts']) ?></p>
+                    <a href="task.php?tema=<?= urlencode($t['id']) ?>" class="btn-primary">Sākt uzdevumu</a>
+                </div>
+            <?php endforeach; ?>
         </div>
 
     </main>

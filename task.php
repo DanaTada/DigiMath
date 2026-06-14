@@ -2,12 +2,30 @@
 session_start();
 require 'ai_helper.php';
 
-if (isset($_GET['id'])) {
-    $_SESSION['tema'] = ($_GET['id'] === '2') ? 'minus' : 'plus';
+// Ielādē tēmas no JSON
+$VISI = json_decode(file_get_contents(__DIR__ . '/uzdevumi.json'), true);
+
+// Skolēna klase no sesijas
+$klase = isset($_SESSION['klase']) ? (int)$_SESSION['klase'] : 1;
+if (!isset($VISI[$klase])) { $klase = 1; }
+$temas = $VISI[$klase]; // 2 tēmas
+
+// Atrod tēmas indeksu pēc id
+function atrast_temu($temas, $tema_id) {
+    foreach ($temas as $i => $t) {
+        if ($t['id'] === $tema_id) return $i;
+    }
+    return 0;
+}
+
+// GET: izvēlēta tēma no taskdesk (?tema=ID)
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['tema'])) {
+    $_SESSION['tema_id'] = $_GET['tema'];
     unset($_SESSION['uzdevums']);
 }
-if (!isset($_SESSION['tema'])) {
-    $_SESSION['tema'] = 'plus';
+// Ja tēma vēl nav izvēlēta vai neder šai klasei — ņem pirmo
+if (!isset($_SESSION['tema_id'])) {
+    $_SESSION['tema_id'] = $temas[0]['id'];
 }
 
 $paskaidrojums  = '';
@@ -21,10 +39,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($darbiba === 'atbildet') {
         $ievaditā = $skolena;
+        // Pieņem gan komatu, gan punktu decimāldaļās (9,6 == 9.6)
+        $atb_skolens = str_replace('.', ',', trim($skolena));
+        $atb_pareiza = str_replace('.', ',', trim($_SESSION['pareiza']));
         if ($skolena === '') {
             $rezultats = 'Lūdzu, ievadi atbildi.';
             $rezultats_tips = 'info';
-        } elseif ($skolena === trim($_SESSION['pareiza'])) {
+        } elseif ($atb_skolens === $atb_pareiza) {
             $rezultats = '✅ Pareizi! Lieliski!';
             $rezultats_tips = 'correct';
         } else {
@@ -32,28 +53,46 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $rezultats_tips = 'wrong';
         }
     } elseif ($darbiba === 'paskaidrot') {
-        $paskaidrojums = paskaidro_atbildi($_SESSION['uzdevums'], $_SESSION['pareiza'], $skolena);
+        $paskaidrojums = paskaidro_atbildi(
+            $_SESSION['uzdevums'],
+            $_SESSION['pareiza'],
+            $skolena,
+            $klase
+        );
     } elseif ($darbiba === 'jauns') {
-        $jauns = genere_uzdevums($_SESSION['tema']);
-        $_SESSION['uzdevums'] = $jauns['uzdevums'];
-        $_SESSION['pareiza']  = $jauns['atbilde'];
+        unset($_SESSION['uzdevums']); // ģenerēs jaunu zemāk (tā pati tēma)
     } elseif ($darbiba === 'jauna_tema') {
-        $_SESSION['tema'] = ($_SESSION['tema'] === 'plus') ? 'minus' : 'plus';
-        $jauns = genere_uzdevums($_SESSION['tema']);
-        $_SESSION['uzdevums'] = $jauns['uzdevums'];
-        $_SESSION['pareiza']  = $jauns['atbilde'];
+        // Pārslēdzas uz OTRO šīs klases tēmu
+        $idx = atrast_temu($temas, $_SESSION['tema_id']);
+        $cits = $temas[1 - $idx]; // otra tēma
+        $_SESSION['tema_id'] = $cits['id'];
+        unset($_SESSION['uzdevums']);
     }
 }
 
+// Pašreizējā tēma
+$idx  = atrast_temu($temas, $_SESSION['tema_id']);
+$tema = $temas[$idx];
+
+// Ja nav uzdevuma — ģenerē jaunu (uz piemēru bāzes)
 if (!isset($_SESSION['uzdevums'])) {
-    $jauns = genere_uzdevums($_SESSION['tema']);
+    $tips = isset($tema['tips']) ? $tema['tips'] : null;
+    $jauns = genere_uzdevumu($tema['label'], $klase, $tema['piemeri'], $tips);
     $_SESSION['uzdevums'] = $jauns['uzdevums'];
     $_SESSION['pareiza']  = $jauns['atbilde'];
 }
 
-$uzdevums         = $_SESSION['uzdevums'];
-$tema_label       = ($_SESSION['tema'] === 'plus') ? '➕ Saskaitīšana' : '➖ Atņemšana';
-$jauna_tema_label = ($_SESSION['tema'] === 'plus') ? 'Pārslēgties uz atņemšanu' : 'Pārslēgties uz saskaitīšanu';
+$uzdevums   = $_SESSION['uzdevums'];
+$tema_label = $tema['icon'] . ' ' . $tema['label'];
+$cita_tema  = $temas[1 - $idx]['label'];
+
+// Padoms par atbildes formātu (tikai daļskaitļiem un decimāldaļām)
+$padoms = '';
+if (($tema['tips'] ?? '') === 'decimal') {
+    $padoms = 'Decimāldaļu raksti ar komatu vai punktu, piem.: 9,6 vai 9.6';
+} elseif (($tema['tips'] ?? '') === 'dalskaitli') {
+    $padoms = 'Daļskaitli raksti ar slīpsvītru, piem.: 1/2';
+}
 ?>
 <!DOCTYPE html>
 <html lang="lv">
@@ -79,11 +118,15 @@ $jauna_tema_label = ($_SESSION['tema'] === 'plus') ? 'Pārslēgties uz atņemša
             <div class="task-box">
                 <div class="task-box-header">
                     <div class="task-tema-badge"><?= htmlspecialchars($tema_label) ?></div>
-                    <div class="task-question"><?= htmlspecialchars($uzdevums) ?></div>
+                    <div class="task-question">
+                        <?php foreach (explode('|', $uzdevums) as $rinda): ?>
+                            <div><?= htmlspecialchars(trim($rinda)) ?></div>
+                        <?php endforeach; ?>
+                    </div>
                 </div>
 
                 <div class="task-box-body">
-                    <form method="post">
+                    <form method="post" action="task.php">
 
                         <div class="answer-row">
                             <input type="text" name="atbilde"
@@ -93,6 +136,10 @@ $jauna_tema_label = ($_SESSION['tema'] === 'plus') ? 'Pārslēgties uz atņemša
                                 Atbildēt
                             </button>
                         </div>
+
+                        <?php if ($padoms): ?>
+                            <p class="answer-hint">💡 <?= htmlspecialchars($padoms) ?></p>
+                        <?php endif; ?>
 
                         <?php if ($rezultats): ?>
                             <div class="result-box <?= $rezultats_tips ?>">
@@ -115,7 +162,7 @@ $jauna_tema_label = ($_SESSION['tema'] === 'plus') ? 'Pārslēgties uz atņemša
                                 🤖 Paskaidrojums
                             </button>
                             <button type="submit" name="darbiba" value="jauna_tema" class="btn-secondary" style="grid-column:1/-1;">
-                                🔀 <?= htmlspecialchars($jauna_tema_label) ?>
+                                🔀 Pārslēgties: <?= htmlspecialchars($cita_tema) ?>
                             </button>
                         </div>
 
