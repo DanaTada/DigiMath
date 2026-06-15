@@ -42,8 +42,34 @@ function izvelkties_json($text) {
     return json_decode(substr($text, $s, $e - $s + 1), true);
 }
 
-// --- AI paskaidrojums ---
-function paskaidro_atbildi($uzdevums, $pareiza, $skolena) {
+// --- Get prompt from database based on grade ---
+function getPromptByGrade($grade) {
+    global $conn;
+    
+    // Default prompt
+    $defaultPrompt = "Tu esi draudzīgs matemātikas skolotājs. Paskaidro latviski vienkārši.";
+    
+    if (!isset($conn)) {
+        return $defaultPrompt;
+    }
+    
+    try {
+        $stmt = $conn->prepare("SELECT prompt FROM ai_prompts WHERE grade_min <= ? AND grade_max >= ? LIMIT 1");
+        $stmt->execute([$grade, $grade]);
+        $result = $stmt->get_result();
+        
+        if ($row = $result->fetch_assoc()) {
+            return $row['prompt'];
+        }
+    } catch (Exception $e) {
+        // If database fails, use default
+    }
+    
+    return $defaultPrompt;
+}
+
+// --- AI paskaidrojums (with grade support) ---
+function paskaidro_atbildi($uzdevums, $pareiza, $skolena, $userGrade = 5) {
     if (trim($skolena) === '') {
         $statuss = "Skolēns vēl nav ievadījis atbildi.";
     } elseif (trim($skolena) === trim($pareiza)) {
@@ -52,12 +78,20 @@ function paskaidro_atbildi($uzdevums, $pareiza, $skolena) {
         $statuss = "Skolēns atbildēja NEPAREIZI.";
     }
 
-    $prompt = "Tu esi draudzīgs matemātikas skolotājs. Paskaidro latviski vienkārši. "
-        . "$statuss\nUzdevums: $uzdevums\nPareizā atbilde: $pareiza\nSkolēna atbilde: $skolena\n"
-        . "Ja pareizi - paslavē. Ja nepareizi - paskaidro kļūdu.";
+    // Get grade-appropriate prompt
+    $teacherPrompt = getPromptByGrade($userGrade);
+    
+    $prompt = $teacherPrompt . "\n\n"
+        . $statuss . "\n"
+        . "Uzdevums: " . $uzdevums . "\n"
+        . "Pareizā atbilde: " . $pareiza . "\n"
+        . "Skolēna atbilde: " . $skolena . "\n\n"
+        . "Ja pareizi - paslavē. Ja nepareizi - paskaidro kļūdu.\n"
+        . "Neraksti markdown, neraksti JSON, tikai tekstu.";
 
     return claude_request($prompt, 500);
 }
+
 // --- AI ģenerē līdzīgu uzdevumu pēc parauga ---
 function genere_lidzigu_uzdevumu($templateTask) {
     $taskText = $templateTask['text'];
@@ -108,3 +142,4 @@ ATBILDI TIKAI AR JSON: {\"uzdevums\":\"...\",\"atbilde\":\"...\"}";
         'atbilde' => $taskAnswer
     ];
 }
+?>

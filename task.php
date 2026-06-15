@@ -214,7 +214,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $needsNewTask = true;
         }
     } elseif ($darbiba === 'paskaidrot') {
-        $paskaidrojums = paskaidro_atbildi($_SESSION['uzdevums'], $_SESSION['pareiza'], $skolena);
+    $paskaidrojums = paskaidro_atbildi($_SESSION['uzdevums'], $_SESSION['pareiza'], $skolena, $userGrade);
     } elseif ($darbiba === 'ai_prakse') {
         $_SESSION['mode'] = 'ai';
         if (isset($_SESSION['current_task_id'])) {
