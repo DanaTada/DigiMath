@@ -58,8 +58,6 @@ $initial = isset($_SESSION['uzvards']) ? mb_strtoupper(mb_substr($_SESSION['uzva
                     <span><?= htmlspecialchars($_SESSION['e-pasts'] ?? '—') ?></span>
                 </div>
             </div>
-                </div>
-            </div>
 
         </div>
 

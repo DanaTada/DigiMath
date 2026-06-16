@@ -67,66 +67,26 @@ foreach ($grades as $grade) {
 <html lang="lv">
 <head>
     <meta charset="UTF-8">
-    <title>Mans Progress</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 600px;
-            margin: 50px auto;
-            padding: 20px;
-            background: #f5f5f5;
-        }
-        .grade-item {
-            margin-bottom: 20px;
-            background: white;
-            padding: 15px;
-            border-radius: 8px;
-        }
-        .grade-label {
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-        .bar-container {
-            background-color: #ddd;
-            height: 30px;
-            border-radius: 5px;
-            overflow: hidden;
-        }
-        .bar-fill {
-            background-color: #4caf50;
-            height: 100%;
-            line-height: 30px;
-            color: white;
-            text-align: center;
-            font-size: 14px;
-        }
-        .auto .bar-fill {
-            background-color: #2196f3;
-        }
-        .locked .bar-fill {
-            background-color: #999;
-        }
-        h1 {
-            color: #333;
-        }
-        .stats {
-            background: #f0f0f0;
-            padding: 15px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-        }
-        .back-link {
-            display: inline-block;
-            margin-top: 20px;
-            color: #2196f3;
-        }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mans progress — DigiMath</title>
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/progress.css">
 </head>
-<body>
+<body class="app-page">
 
-<h1>📊 Mans Progress</h1>
+    <header class="site-header">
+        <a href="home.php" class="site-logo">Digi<span>Math</span></a>
+        <nav><a href="profile.php">Profils</a></nav>
+    </header>
 
-<div class="stats">
+    <main class="app-main progress-main">
+
+        <a href="home.php" class="back-link">← Atpakaļ uz sākumu</a>
+
+        <div class="page-heading">
+            <h1>Mans progress</h1>
+        </div>
+<div class="progress-stats">
     <strong>Tava klase:</strong> <?= $userGrade ?>. klase<br>
     <small>✅ 1.-<?= $userGrade-1 ?>. klase: Automātiski pabeigti</small><br>
     <small>📝 <?= $userGrade ?>. klase: Jāpabeidz</small><br>
@@ -157,7 +117,7 @@ foreach ($grades as $grade) {
 </div>
 <?php endforeach; ?>
 
-<p><a href="home.php" class="back-link">← Atpakaļ uz sākumu</a></p>
+</main>
 
 </body>
 </html>

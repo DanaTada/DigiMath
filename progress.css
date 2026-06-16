@@ -1,0 +1,75 @@
+/* ============================================================
+   progress.css — стили для profile_progress.php
+   ============================================================ */
+
+.progress-main {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 50px 24px 80px;
+}
+
+/* Сводка сверху */
+.progress-stats {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 20px 22px;
+  margin-bottom: 28px;
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--soft);
+}
+.progress-stats strong { color: var(--white); }
+
+/* Карточка одного класса */
+.grade-item {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 18px 20px;
+  margin-bottom: 14px;
+}
+.grade-label {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 16px;
+  margin-bottom: 10px;
+}
+
+/* Полоса прогресса */
+.bar-container {
+  background: rgba(255,255,255,.08);
+  height: 26px;
+  border-radius: 999px;
+  overflow: hidden;
+}
+.bar-fill {
+  height: 100%;
+  line-height: 26px;
+  color: var(--navy);
+  text-align: center;
+  font-size: 13px;
+  font-weight: 800;
+  background: linear-gradient(90deg, var(--yellow), #FFE680);
+  border-radius: 999px;
+  transition: width .4s ease;
+  min-width: 0;
+}
+
+/* Пройденные младшие классы — приглушённо-зелёный */
+.grade-item.auto .bar-fill {
+  background: linear-gradient(90deg, #1FA98A, #4FD1B0);
+  color: #fff;
+}
+/* Заблокированные старшие классы — серый */
+.grade-item.locked .bar-fill {
+  background: rgba(255,255,255,.18);
+  color: var(--soft);
+}
+
+.grade-item small {
+  display: block;
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--soft);
+}
